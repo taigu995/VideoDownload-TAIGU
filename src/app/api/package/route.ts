@@ -168,7 +168,7 @@ echo [OK] Dependencies installed >> "%LOG_FILE%"
 echo.
 echo [2/4] Building Next.js application...
 echo [2/4] Building Next.js... >> "%LOG_FILE%"
-call npx pnpm run build:next >> "%LOG_FILE%" 2>&1
+call npm run build:next >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Next.js build failed!
     echo [ERROR] Next.js build failed >> "%LOG_FILE%"
@@ -183,7 +183,7 @@ echo [OK] Next.js build complete >> "%LOG_FILE%"
 echo.
 echo [3/4] Packaging Electron desktop app...
 echo [3/4] Packaging Electron... >> "%LOG_FILE%"
-call npx pnpm run build:electron >> "%LOG_FILE%" 2>&1
+call npm run build:electron >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Electron packaging failed!
     echo [ERROR] Electron packaging failed >> "%LOG_FILE%"
