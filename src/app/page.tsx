@@ -590,7 +590,8 @@ export default function Home() {
             src={currentUrl}
             onLoad={handleIframeLoad}
             className="w-full h-full border-0"
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
+            allow="clipboard-read; clipboard-write; fullscreen"
+            referrerPolicy="no-referrer-when-downgrade"
             title="浏览内容"
           />
           {isLoading && (
