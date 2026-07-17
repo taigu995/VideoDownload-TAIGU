@@ -152,13 +152,8 @@ echo.
 echo [1/4] Installing dependencies...
 echo [1/4] Installing dependencies... >> "%LOG_FILE%"
 
-:: Create .npmrc to allow build scripts
-echo ignore-scripts=false > .npmrc
-echo onlyBuiltDependencies[]=electron >> .npmrc
-echo onlyBuiltDependencies[]=sharp >> .npmrc
-echo [INFO] Created .npmrc to allow build scripts >> "%LOG_FILE%"
-
-call npx pnpm install >> "%LOG_FILE%" 2>&1
+:: Use npm instead of pnpm to avoid build script restrictions
+call npm install >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Dependency installation failed!
     echo [ERROR] Dependency install failed >> "%LOG_FILE%"
