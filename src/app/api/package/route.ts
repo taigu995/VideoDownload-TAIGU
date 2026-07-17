@@ -151,21 +151,14 @@ if %ERRORLEVEL% NEQ 0 (
 echo.
 echo [1/4] Installing dependencies...
 echo [1/4] Installing dependencies... >> "%LOG_FILE%"
-call npx pnpm install >> "%LOG_FILE%" 2>&1
+call npx pnpm install --config.ignoreScripts=false >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [INFO] Trying to approve build scripts...
-    echo [INFO] Approving build scripts... >> "%LOG_FILE%"
-    call npx pnpm approve-builds electron sharp >> "%LOG_FILE%" 2>&1
-    echo [INFO] Retrying install...
-    call npx pnpm install >> "%LOG_FILE%" 2>&1
-    if %ERRORLEVEL% NEQ 0 (
-        echo [ERROR] Dependency installation failed!
-        echo [ERROR] Dependency install failed >> "%LOG_FILE%"
-        echo.
-        echo Check build.log for details
-        pause
-        exit /b 1
-    )
+    echo [ERROR] Dependency installation failed!
+    echo [ERROR] Dependency install failed >> "%LOG_FILE%"
+    echo.
+    echo Check build.log for details
+    pause
+    exit /b 1
 )
 echo [OK] Dependencies installed
 echo [OK] Dependencies installed >> "%LOG_FILE%"
