@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       description: 'VideoSniffer - Web Video Detector & Downloader',
       main: 'electron/main.js',
       scripts: {
-        'build:next': 'pnpm run build',
+        'build:next': 'next build',
         'build:electron': 'electron-builder --win --x64',
         'build': 'node scripts/build.js',
         'start': 'electron .',
@@ -240,9 +240,9 @@ function run(cmd, label) {
   }
 }
 
-run('pnpm install', 'Step 1/3 - Install dependencies');
-run('pnpm run build:next', 'Step 2/3 - Build Next.js');
-run('pnpm run build:electron', 'Step 3/3 - Package Electron');
+run('npm install', 'Step 1/3 - Install dependencies');
+run('npm run build:next', 'Step 2/3 - Build Next.js');
+run('npm run build:electron', 'Step 3/3 - Package Electron');
 
 console.log('');
 console.log('  Build complete! EXE installer is in the "dist" folder');
