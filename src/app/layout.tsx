@@ -3,15 +3,16 @@ import { Inspector } from 'react-dev-inspector';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'VideoSniffer - Web Video Detector & Downloader',
+  title: 'VideoSniffer - 视频嗅探浏览器',
   description:
-    'Detect and download video resources from YouTube, Bilibili, TikTok, Twitter/X, Instagram and 1000+ websites. One-click EXE build for Windows.',
+    '浏览器式视频嗅探与下载工具，支持网页浏览、书签管理、一键翻译外文网页、视频嗅探下载，可打包为 Windows EXE 桌面程序。',
   keywords: [
-    'video downloader',
-    'video sniffer',
+    '视频下载',
+    '视频嗅探',
+    '网页翻译',
+    '浏览器',
     'yt-dlp',
-    'download video',
-    'EXE browser',
+    'EXE浏览器',
   ],
   authors: [{ name: 'Coze Code Team', url: 'https://code.coze.cn' }],
   generator: 'Coze Code',
@@ -19,9 +20,9 @@ export const metadata: Metadata = {
   //   icon: '',
   // },
   openGraph: {
-    title: 'VideoSniffer - Web Video Detector & Downloader',
+    title: 'VideoSniffer - 视频嗅探浏览器',
     description:
-      'Detect and download video resources from 1000+ websites. Build EXE for Windows.',
+      '浏览器式视频嗅探与下载工具，支持网页翻译、视频嗅探下载，一键打包为 Windows EXE。',
     url: 'https://code.coze.cn',
     siteName: 'VideoSniffer',
     locale: 'zh_CN',
@@ -41,7 +42,7 @@ export default function RootLayout({
   const isDev = process.env.COZE_PROJECT_ENV === 'DEV';
 
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body className={`antialiased`}>
         {isDev && <Inspector />}
         {children}
