@@ -20,8 +20,10 @@ export async function GET(request: NextRequest) {
     // 1. Copy electron main files
     const mainJs = fs.readFileSync(path.join(projectRoot, 'electron', 'main.js'), 'utf-8');
     const preloadJs = fs.readFileSync(path.join(projectRoot, 'electron', 'preload.js'), 'utf-8');
+    const webviewPreloadJs = fs.readFileSync(path.join(projectRoot, 'electron', 'webview-preload.js'), 'utf-8');
     fs.writeFileSync(path.join(pkgDir, 'electron', 'main.js'), mainJs);
     fs.writeFileSync(path.join(pkgDir, 'electron', 'preload.js'), preloadJs);
+    fs.writeFileSync(path.join(pkgDir, 'electron', 'webview-preload.js'), webviewPreloadJs);
 
     // 2. Create package.json for electron build
     const electronPkg = {
@@ -96,61 +98,62 @@ export async function GET(request: NextRequest) {
     // 3. Create one-click build script (batch file for Windows)
     const buildBat = `@echo off
 chcp 65001 >nul
-title VideoSniffer - Build EXE
+title VideoSniffer - 一键打包EXE
 echo.
 echo  ============================================
-echo    VideoSniffer EXE Builder
-echo    One-click build for Windows
+echo    VideoSniffer EXE 一键打包工具
+echo    适用于 Windows 10/11 (64位)
 echo  ============================================
 echo.
 
-:: Check Node.js
+:: 检查 Node.js
 where node >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Node.js not found! Please install Node.js first.
-    echo Download from: https://nodejs.org/
+    echo [错误] 未检测到 Node.js！请先安装 Node.js 18+
+    echo 下载地址: https://nodejs.org/
     pause
     exit /b 1
 )
 
-:: Check pnpm
+:: 检查 pnpm
 where pnpm >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [INFO] Installing pnpm...
+    echo [提示] 正在安装 pnpm 包管理器...
     npm install -g pnpm
 )
 
-echo [1/4] Installing dependencies...
+echo [1/4] 安装项目依赖...
 call pnpm install
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Failed to install dependencies
+    echo [错误] 依赖安装失败
     pause
     exit /b 1
 )
 
 echo.
-echo [2/4] Building Next.js application...
+echo [2/4] 构建 Next.js 应用...
 call pnpm run build:next
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Failed to build Next.js
+    echo [错误] Next.js 构建失败
     pause
     exit /b 1
 )
 
 echo.
-echo [3/4] Packaging Electron application...
+echo [3/4] 打包 Electron 桌面应用...
 call pnpm run build:electron
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Failed to build Electron
+    echo [错误] Electron 打包失败
     pause
     exit /b 1
 )
 
 echo.
-echo [4/4] Build complete!
+echo [4/4] 打包完成！
 echo.
 echo  ============================================
-echo    EXE file is in the "dist" folder
+echo    EXE 安装程序已生成在 "dist" 文件夹中
+echo    双击 EXE 即可安装使用
 echo  ============================================
 echo.
 
@@ -166,27 +169,28 @@ const path = require('path');
 
 console.log('');
 console.log('  ============================================');
-console.log('    VideoSniffer EXE Builder');
+console.log('    VideoSniffer EXE 一键打包工具');
+console.log('    适用于 Windows 10/11 (64位)');
 console.log('  ============================================');
 console.log('');
 
 function run(cmd, label) {
-  console.log(\`[\${label}] Running: \${cmd}\`);
+  console.log(\`[\${label}] 执行: \${cmd}\`);
   try {
     execSync(cmd, { stdio: 'inherit', cwd: path.join(__dirname, '..') });
-    console.log(\`[\${label}] Done!\`);
+    console.log(\`[\${label}] 完成!\`);
   } catch (err) {
-    console.error(\`[\${label}] Failed:\`, err.message);
+    console.error(\`[\${label}] 失败:\`, err.message);
     process.exit(1);
   }
 }
 
-run('pnpm install', 'Step 1/3');
-run('pnpm run build:next', 'Step 2/3');
-run('pnpm run build:electron', 'Step 3/3');
+run('pnpm install', '步骤 1/3 - 安装依赖');
+run('pnpm run build:next', '步骤 2/3 - 构建 Next.js');
+run('pnpm run build:electron', '步骤 3/3 - 打包 Electron');
 
 console.log('');
-console.log('  Build complete! EXE file is in the "dist" folder.');
+console.log('  打包完成！EXE 安装程序在 "dist" 文件夹中');
 console.log('');
 `;
     fs.writeFileSync(path.join(pkgDir, 'scripts', 'build.js'), buildJs);
@@ -231,37 +235,59 @@ export default nextConfig;
     }
 
     // Copy config files
-    const configFiles = ['tsconfig.json', 'package.json'];
+    const configFiles = ['tsconfig.json'];
     for (const file of configFiles) {
       const srcPath = path.join(projectRoot, file);
-      if (fs.existsSync(srcPath) && file !== 'package.json') {
+      if (fs.existsSync(srcPath)) {
         fs.copyFileSync(srcPath, path.join(pkgDir, file));
       }
     }
 
+    // Create .gitignore
+    const gitignore = `node_modules
+.next
+dist
+*.log
+.DS_Store
+`;
+    fs.writeFileSync(path.join(pkgDir, '.gitignore'), gitignore);
+
     // 7. Create README
-    const readme = `# VideoSniffer EXE Builder
+    const readme = `# VideoSniffer - 视频嗅探浏览器 EXE 打包工具
 
-## Requirements
-- Windows 10/11 (64-bit)
-- Node.js 18+ (https://nodejs.org/)
-- pnpm (will be auto-installed if missing)
+## 系统要求
+- Windows 10/11 (64位)
+- Node.js 18+ (下载地址: https://nodejs.org/)
+- pnpm (缺失时会自动安装)
 
-## Quick Build (One Click)
-Double-click \`build.bat\` and wait for the build to complete.
-The EXE file will be generated in the \`dist\` folder.
+## 一键打包步骤
+1. 解压本压缩包到任意目录
+2. 双击运行 \`build.bat\`
+3. 等待打包完成（首次约 5-10 分钟）
+4. 打包完成后，EXE 安装程序在 \`dist\` 文件夹中
+5. 双击 EXE 安装即可使用
 
-## Manual Build
+## 功能特性
+- 浏览器式网页浏览（地址栏、书签、标签页）
+- 网页视频自动嗅探（支持 video/source/m3u8/mp4）
+- 视频下载并自动转换为 MP4 格式
+- 一键翻译外文网页为中文
+- 网页文字可复制粘贴
+- 自定义视频下载保存路径
+- 支持 1000+ 网站（YouTube、Bilibili、TikTok、Twitter/X、Instagram 等）
+
+## 手动构建
 \`\`\`bash
 pnpm install
 pnpm run build
 \`\`\`
 
-## Notes
-- First build may take 5-10 minutes (downloads Electron + dependencies)
-- The generated EXE is a standalone installer, no additional runtime needed
-- yt-dlp is bundled and will be auto-downloaded on first run
-- Supported sites: YouTube, Bilibili, TikTok, Twitter/X, Instagram, and 1000+ more
+## 注意事项
+- 首次构建需要下载 Electron 和依赖包，请耐心等待
+- 生成的 EXE 是独立安装程序，无需额外运行环境
+- yt-dlp 会在首次运行时自动下载
+- 桌面版使用 BrowserView 加载网页，可正常浏览所有网站
+- Web 版使用 iframe，部分网站可能因安全策略限制无法嵌入
 `;
     fs.writeFileSync(path.join(pkgDir, 'README.md'), readme);
 
