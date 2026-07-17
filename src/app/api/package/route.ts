@@ -116,6 +116,8 @@ export async function GET(request: NextRequest) {
         '@radix-ui/react-toggle-group': '^1.1.0',
         '@radix-ui/react-tooltip': '^1.1.0',
         'lucide-react': '^0.400.0',
+        'react-day-picker': '^9.0.0',
+        'date-fns': '^4.0.0',
         'class-variance-authority': '^0.7.0',
         clsx: '^2.1.0',
         'tailwind-merge': '^2.0.0',
@@ -390,6 +392,19 @@ if (fs.existsSync(globalsCssPath)) {
     fs.writeFileSync(globalsCssPath, content);
     console.log('[Patch] Fixed: Removed tw-animate-css import');
     patchesApplied++;
+  }
+}
+
+// Patch 2: Check for missing dependencies
+const pkgPath = path.join(__dirname, '..', 'package.json');
+if (fs.existsSync(pkgPath)) {
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+  const requiredDeps = ['react-day-picker', 'date-fns'];
+  const missingDeps = requiredDeps.filter(dep => !deps[dep]);
+  if (missingDeps.length > 0) {
+    console.log('[Patch] Warning: Missing dependencies:', missingDeps.join(', '));
+    console.log('[Patch] Please run: npm install ' + missingDeps.join(' '));
   }
 }
 
