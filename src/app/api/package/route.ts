@@ -118,6 +118,7 @@ export async function GET(request: NextRequest) {
         'lucide-react': '^0.400.0',
         'react-day-picker': '^9.0.0',
         'date-fns': '^4.0.0',
+        'embla-carousel-react': '^8.0.0',
         'class-variance-authority': '^0.7.0',
         clsx: '^2.1.0',
         'tailwind-merge': '^2.0.0',
