@@ -98,6 +98,11 @@ export async function GET(request: NextRequest) {
     // 3. Create one-click build script (batch file for Windows)
     const buildBat = `@echo off
 title VideoSniffer - Build EXE
+set LOG_FILE=build.log
+echo Build started at %date% %time% > "%LOG_FILE%"
+
+:: Redirect all output to log file
+(
 echo.
 echo  ============================================
 echo    VideoSniffer EXE Build Tool
@@ -110,45 +115,52 @@ where node >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Node.js not found! Please install Node.js 18+
     echo Download: https://nodejs.org/
-    pause
-    exit /b 1
+    goto :error
 )
+echo [OK] Node.js found: 
+node --version
 
 :: Check pnpm
 where pnpm >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [INFO] pnpm not found, installing...
-    npm install -g pnpm
+    echo [INFO] pnpm not found, installing globally...
+    call npm install -g pnpm 2>&1
     if %ERRORLEVEL% NEQ 0 (
-        echo [WARN] Global install failed, will use npx pnpm instead
+        echo [WARN] Global pnpm install failed, will use npx pnpm
+    ) else (
+        echo [OK] pnpm installed successfully
     )
+) else (
+    echo [OK] pnpm found: 
+    call pnpm --version
 )
 
+echo.
 echo [1/4] Installing dependencies...
-call npx pnpm install
+call npx pnpm install 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Dependency installation failed
-    pause
-    exit /b 1
+    echo [ERROR] Dependency installation failed!
+    goto :error
 )
+echo [OK] Dependencies installed
 
 echo.
 echo [2/4] Building Next.js application...
-call npx pnpm run build:next
+call npx pnpm run build:next 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Next.js build failed
-    pause
-    exit /b 1
+    echo [ERROR] Next.js build failed!
+    goto :error
 )
+echo [OK] Next.js build complete
 
 echo.
 echo [3/4] Packaging Electron desktop app...
-call npx pnpm run build:electron
+call npx pnpm run build:electron 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Electron packaging failed
-    pause
-    exit /b 1
+    echo [ERROR] Electron packaging failed!
+    goto :error
 )
+echo [OK] Electron packaging complete
 
 echo.
 echo [4/4] Build complete!
@@ -160,6 +172,30 @@ echo  ============================================
 echo.
 
 explorer dist
+echo Build completed successfully at %date% %time% >> "%LOG_FILE%"
+pause
+exit /b 0
+
+:error
+echo.
+echo  ============================================
+echo    BUILD FAILED! Check build.log for details
+echo  ============================================
+echo Build failed at %date% %time% >> "%LOG_FILE%"
+echo.
+echo Last 50 lines of build.log:
+echo ---
+powershell -Command "Get-Content '%LOG_FILE%' -Tail 50"
+echo ---
+echo.
+echo Please check "%LOG_FILE%" for full error details
+pause
+exit /b 1
+
+) >> "%LOG_FILE%" 2>&1
+
+:: Show log on screen
+type "%LOG_FILE%"
 pause
 `;
     fs.writeFileSync(path.join(pkgDir, 'build.bat'), buildBat);
