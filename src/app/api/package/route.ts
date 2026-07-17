@@ -117,12 +117,15 @@ if %ERRORLEVEL% NEQ 0 (
 :: Check pnpm
 where pnpm >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [INFO] Installing pnpm package manager...
+    echo [INFO] pnpm not found, installing...
     npm install -g pnpm
+    if %ERRORLEVEL% NEQ 0 (
+        echo [WARN] Global install failed, will use npx pnpm instead
+    )
 )
 
 echo [1/4] Installing dependencies...
-call pnpm install
+call npx pnpm install
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Dependency installation failed
     pause
@@ -131,7 +134,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo.
 echo [2/4] Building Next.js application...
-call pnpm run build:next
+call npx pnpm run build:next
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Next.js build failed
     pause
@@ -140,7 +143,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo.
 echo [3/4] Packaging Electron desktop app...
-call pnpm run build:electron
+call npx pnpm run build:electron
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Electron packaging failed
     pause
