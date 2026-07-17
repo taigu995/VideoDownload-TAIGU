@@ -151,7 +151,14 @@ if %ERRORLEVEL% NEQ 0 (
 echo.
 echo [1/4] Installing dependencies...
 echo [1/4] Installing dependencies... >> "%LOG_FILE%"
-call npx pnpm install --config.ignoreScripts=false >> "%LOG_FILE%" 2>&1
+
+:: Create .npmrc to allow build scripts
+echo ignore-scripts=false > .npmrc
+echo onlyBuiltDependencies[]=electron >> .npmrc
+echo onlyBuiltDependencies[]=sharp >> .npmrc
+echo [INFO] Created .npmrc to allow build scripts >> "%LOG_FILE%"
+
+call npx pnpm install >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Dependency installation failed!
     echo [ERROR] Dependency install failed >> "%LOG_FILE%"
