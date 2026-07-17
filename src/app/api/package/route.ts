@@ -87,10 +87,16 @@ export async function GET(request: NextRequest) {
         next: '^16.0.0',
         react: '^19.0.0',
         'react-dom': '^19.0.0',
+        tailwindcss: '^4.0.0',
+        'tw-animate-css': '^1.0.0',
+        'react-dev-inspector': '^2.0.0',
       },
       devDependencies: {
         electron: '^33.0.0',
         'electron-builder': '^25.0.0',
+        typescript: '^5.0.0',
+        '@types/react': '^19.0.0',
+        '@types/react-dom': '^19.0.0',
       },
     };
     fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify(electronPkg, null, 2));
@@ -240,7 +246,7 @@ function run(cmd, label) {
   }
 }
 
-run('npm install', 'Step 1/3 - Install dependencies');
+run('npm install --legacy-peer-deps', 'Step 1/3 - Install dependencies');
 run('npm run build:next', 'Step 2/3 - Build Next.js');
 run('npm run build:electron', 'Step 3/3 - Package Electron');
 
