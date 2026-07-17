@@ -98,105 +98,120 @@ export async function GET(request: NextRequest) {
     // 3. Create one-click build script (batch file for Windows)
     const buildBat = `@echo off
 title VideoSniffer - Build EXE
-set LOG_FILE=build.log
-echo Build started at %date% %time% > "%LOG_FILE%"
+set LOG_FILE=%~dp0build.log
 
-:: Redirect all output to log file
-(
+echo ============================================ > "%LOG_FILE%"
+echo   VideoSniffer EXE Build Tool              >> "%LOG_FILE%"
+echo   For Windows 10/11 (64-bit)               >> "%LOG_FILE%"
+echo ============================================ >> "%LOG_FILE%"
+echo Build started at %date% %time%             >> "%LOG_FILE%"
+echo.                                            >> "%LOG_FILE%"
+
 echo.
-echo  ============================================
-echo    VideoSniffer EXE Build Tool
-echo    For Windows 10/11 (64-bit)
-echo  ============================================
+echo ============================================
+echo   VideoSniffer EXE Build Tool
+echo   For Windows 10/11 (64-bit)
+echo ============================================
 echo.
 
 :: Check Node.js
 where node >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Node.js not found! Please install Node.js 18+
+    echo [ERROR] Node.js not found >> "%LOG_FILE%"
     echo Download: https://nodejs.org/
-    goto :error
+    pause
+    exit /b 1
 )
-echo [OK] Node.js found: 
+echo [OK] Node.js found:
 node --version
+echo [OK] Node.js: >> "%LOG_FILE%"
+node --version >> "%LOG_FILE%" 2>&1
 
 :: Check pnpm
 where pnpm >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [INFO] pnpm not found, installing globally...
-    call npm install -g pnpm 2>&1
+    echo [INFO] Installing pnpm... >> "%LOG_FILE%"
+    call npm install -g pnpm >> "%LOG_FILE%" 2>&1
     if %ERRORLEVEL% NEQ 0 (
         echo [WARN] Global pnpm install failed, will use npx pnpm
+        echo [WARN] pnpm install failed >> "%LOG_FILE%"
     ) else (
         echo [OK] pnpm installed successfully
+        echo [OK] pnpm installed >> "%LOG_FILE%"
     )
 ) else (
-    echo [OK] pnpm found: 
+    echo [OK] pnpm found:
     call pnpm --version
+    echo [OK] pnpm: >> "%LOG_FILE%"
+    call pnpm --version >> "%LOG_FILE%" 2>&1
 )
 
 echo.
 echo [1/4] Installing dependencies...
-call npx pnpm install 2>&1
+echo [1/4] Installing dependencies... >> "%LOG_FILE%"
+call npx pnpm install >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Dependency installation failed!
-    goto :error
+    echo [ERROR] Dependency install failed >> "%LOG_FILE%"
+    echo.
+    echo Check build.log for details
+    pause
+    exit /b 1
 )
 echo [OK] Dependencies installed
+echo [OK] Dependencies installed >> "%LOG_FILE%"
 
 echo.
 echo [2/4] Building Next.js application...
-call npx pnpm run build:next 2>&1
+echo [2/4] Building Next.js... >> "%LOG_FILE%"
+call npx pnpm run build:next >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Next.js build failed!
-    goto :error
+    echo [ERROR] Next.js build failed >> "%LOG_FILE%"
+    echo.
+    echo Check build.log for details
+    pause
+    exit /b 1
 )
 echo [OK] Next.js build complete
+echo [OK] Next.js build complete >> "%LOG_FILE%"
 
 echo.
 echo [3/4] Packaging Electron desktop app...
-call npx pnpm run build:electron 2>&1
+echo [3/4] Packaging Electron... >> "%LOG_FILE%"
+call npx pnpm run build:electron >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Electron packaging failed!
-    goto :error
+    echo [ERROR] Electron packaging failed >> "%LOG_FILE%"
+    echo.
+    echo Check build.log for details
+    pause
+    exit /b 1
 )
 echo [OK] Electron packaging complete
+echo [OK] Electron packaging complete >> "%LOG_FILE%"
 
 echo.
 echo [4/4] Build complete!
+echo [4/4] Build complete >> "%LOG_FILE%"
 echo.
-echo  ============================================
-echo    EXE installer is in the "dist" folder
-echo    Double-click the EXE to install
-echo  ============================================
+echo ============================================
+echo   EXE installer is in the "dist" folder
+echo   Double-click the EXE to install
+echo ============================================
 echo.
 
-explorer dist
+if exist dist (
+    explorer dist
+)
+
 echo Build completed successfully at %date% %time% >> "%LOG_FILE%"
+echo.
+echo Full log saved to: %LOG_FILE%
 pause
 exit /b 0
-
-:error
-echo.
-echo  ============================================
-echo    BUILD FAILED! Check build.log for details
-echo  ============================================
-echo Build failed at %date% %time% >> "%LOG_FILE%"
-echo.
-echo Last 50 lines of build.log:
-echo ---
-powershell -Command "Get-Content '%LOG_FILE%' -Tail 50"
-echo ---
-echo.
-echo Please check "%LOG_FILE%" for full error details
-pause
-exit /b 1
-
-) >> "%LOG_FILE%" 2>&1
-
-:: Show log on screen
-type "%LOG_FILE%"
-pause
 `;
     fs.writeFileSync(path.join(pkgDir, 'build.bat'), buildBat);
 
