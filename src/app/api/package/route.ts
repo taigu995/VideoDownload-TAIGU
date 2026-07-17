@@ -88,7 +88,6 @@ export async function GET(request: NextRequest) {
         react: '^19.0.0',
         'react-dom': '^19.0.0',
         tailwindcss: '^4.0.0',
-        'tw-animate-css': '^1.0.0',
         'react-dev-inspector': '^2.0.0',
       },
       devDependencies: {
