@@ -89,6 +89,36 @@ export async function GET(request: NextRequest) {
         'react-dom': '^19.0.0',
         tailwindcss: '^4.0.0',
         'react-dev-inspector': '^2.0.0',
+        '@radix-ui/react-accordion': '^1.2.0',
+        '@radix-ui/react-alert-dialog': '^1.1.0',
+        '@radix-ui/react-aspect-ratio': '^1.1.0',
+        '@radix-ui/react-avatar': '^1.1.0',
+        '@radix-ui/react-checkbox': '^1.1.0',
+        '@radix-ui/react-collapsible': '^1.1.0',
+        '@radix-ui/react-context-menu': '^2.2.0',
+        '@radix-ui/react-dialog': '^1.1.0',
+        '@radix-ui/react-dropdown-menu': '^2.1.0',
+        '@radix-ui/react-hover-card': '^1.1.0',
+        '@radix-ui/react-label': '^2.1.0',
+        '@radix-ui/react-menubar': '^1.1.0',
+        '@radix-ui/react-navigation-menu': '^1.2.0',
+        '@radix-ui/react-popover': '^1.1.0',
+        '@radix-ui/react-progress': '^1.1.0',
+        '@radix-ui/react-radio-group': '^1.2.0',
+        '@radix-ui/react-scroll-area': '^1.2.0',
+        '@radix-ui/react-select': '^2.1.0',
+        '@radix-ui/react-separator': '^1.1.0',
+        '@radix-ui/react-slider': '^1.2.0',
+        '@radix-ui/react-slot': '^1.1.0',
+        '@radix-ui/react-switch': '^1.1.0',
+        '@radix-ui/react-tabs': '^1.1.0',
+        '@radix-ui/react-toggle': '^1.1.0',
+        '@radix-ui/react-toggle-group': '^1.1.0',
+        '@radix-ui/react-tooltip': '^1.1.0',
+        'lucide-react': '^0.400.0',
+        'class-variance-authority': '^0.7.0',
+        clsx: '^2.1.0',
+        'tailwind-merge': '^2.0.0',
       },
       devDependencies: {
         electron: '^33.0.0',
@@ -154,8 +184,33 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo [1/4] Installing dependencies...
-echo [1/4] Installing dependencies... >> "%LOG_FILE%"
+echo [1/5] Checking for build patches...
+echo [1/5] Checking for build patches... >> "%LOG_FILE%"
+
+:: Auto-download build patches to prevent build failures
+echo [INFO] Checking for build patches...
+echo [INFO] Checking for build patches... >> "%LOG_FILE%"
+
+:: Check if patch script exists
+if exist "scripts\apply-patches.js" (
+    echo [INFO] Applying build patches...
+    echo [INFO] Applying build patches... >> "%LOG_FILE%"
+    node scripts\apply-patches.js >> "%LOG_FILE%" 2>&1
+    if %ERRORLEVEL% EQU 0 (
+        echo [OK] Build patches applied successfully
+        echo [OK] Build patches applied >> "%LOG_FILE%"
+    ) else (
+        echo [WARN] Some patches failed to apply, continuing...
+        echo [WARN] Some patches failed >> "%LOG_FILE%"
+    )
+) else (
+    echo [INFO] No patches to apply
+    echo [INFO] No patches to apply >> "%LOG_FILE%"
+)
+
+echo.
+echo [2/5] Installing dependencies...
+echo [2/5] Installing dependencies... >> "%LOG_FILE%"
 
 :: Use npm instead of pnpm to avoid build script restrictions
 call npm install >> "%LOG_FILE%" 2>&1
@@ -171,8 +226,8 @@ echo [OK] Dependencies installed
 echo [OK] Dependencies installed >> "%LOG_FILE%"
 
 echo.
-echo [2/4] Building Next.js application...
-echo [2/4] Building Next.js... >> "%LOG_FILE%"
+echo [3/5] Building Next.js application...
+echo [3/5] Building Next.js... >> "%LOG_FILE%"
 call npm run build:next >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Next.js build failed!
@@ -186,8 +241,8 @@ echo [OK] Next.js build complete
 echo [OK] Next.js build complete >> "%LOG_FILE%"
 
 echo.
-echo [3/4] Packaging Electron desktop app...
-echo [3/4] Packaging Electron... >> "%LOG_FILE%"
+echo [4/5] Packaging Electron desktop app...
+echo [4/5] Packaging Electron... >> "%LOG_FILE%"
 call npm run build:electron >> "%LOG_FILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Electron packaging failed!
@@ -201,8 +256,8 @@ echo [OK] Electron packaging complete
 echo [OK] Electron packaging complete >> "%LOG_FILE%"
 
 echo.
-echo [4/4] Build complete!
-echo [4/4] Build complete >> "%LOG_FILE%"
+echo [5/5] Build complete!
+echo [5/5] Build complete >> "%LOG_FILE%"
 echo.
 echo ============================================
 echo   EXE installer is in the "dist" folder
@@ -312,7 +367,79 @@ dist
 `;
     fs.writeFileSync(path.join(pkgDir, '.gitignore'), gitignore);
 
-    // 7. Create README
+    // 7. Create apply-patches.js script for auto-fixing build issues
+    const applyPatchesScript = `#!/usr/bin/env node
+/**
+ * VideoSniffer Build Patches
+ * Automatically fixes common build issues
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+console.log('[Patch] Checking for common build issues...');
+
+let patchesApplied = 0;
+
+// Patch 1: Fix missing tw-animate-css import
+const globalsCssPath = path.join(__dirname, '..', 'src', 'app', 'globals.css');
+if (fs.existsSync(globalsCssPath)) {
+  let content = fs.readFileSync(globalsCssPath, 'utf8');
+  if (content.includes("@import 'tw-animate-css'")) {
+    content = content.replace("@import 'tw-animate-css';\\n", '');
+    fs.writeFileSync(globalsCssPath, content);
+    console.log('[Patch] Fixed: Removed tw-animate-css import');
+    patchesApplied++;
+  }
+}
+
+// Patch 2: Ensure all Radix UI dependencies are installed
+const pkgPath = path.join(__dirname, '..', 'package.json');
+if (fs.existsSync(pkgPath)) {
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const requiredDeps = [
+    '@radix-ui/react-accordion',
+    '@radix-ui/react-slot',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-dropdown-menu',
+    '@radix-ui/react-tooltip',
+  ];
+  
+  let needsUpdate = false;
+  for (const dep of requiredDeps) {
+    if (!pkg.dependencies[dep]) {
+      console.log(\`[Patch] Warning: Missing dependency \${dep}\`);
+      needsUpdate = true;
+    }
+  }
+  
+  if (needsUpdate) {
+    console.log('[Patch] Run npm install to ensure all dependencies are installed');
+  }
+}
+
+// Patch 3: Fix Next.js config for standalone mode
+const nextConfigPath = path.join(__dirname, '..', 'next.config.ts');
+if (fs.existsSync(nextConfigPath)) {
+  let content = fs.readFileSync(nextConfigPath, 'utf8');
+  if (!content.includes('output:')) {
+    content = content.replace(
+      'const nextConfig: NextConfig = {',
+      'const nextConfig: NextConfig = {\\n  output: "standalone",'
+    );
+    fs.writeFileSync(nextConfigPath, content);
+    console.log('[Patch] Fixed: Added standalone output to next.config.ts');
+    patchesApplied++;
+  }
+}
+
+console.log(\`[Patch] \${patchesApplied} patch(es) applied\`);
+process.exit(0);
+`;
+    fs.mkdirSync(path.join(pkgDir, 'scripts'), { recursive: true });
+    fs.writeFileSync(path.join(pkgDir, 'scripts', 'apply-patches.js'), applyPatchesScript);
+
+    // 8. Create README
     const readme = `# VideoSniffer - 视频嗅探浏览器 EXE 打包工具
 
 ## 系统要求
@@ -351,7 +478,7 @@ pnpm run build
 `;
     fs.writeFileSync(path.join(pkgDir, 'README.md'), readme);
 
-    // 8. Create zip file
+    // 9. Create zip file
     const zipPath = path.join(tmpDir, 'VideoSniffer-EXE-Builder.zip');
     try {
       execFileSync('zip', ['-r', '-q', zipPath, 'VideoSniffer'], { cwd: tmpDir });
