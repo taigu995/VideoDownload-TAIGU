@@ -97,63 +97,62 @@ export async function GET(request: NextRequest) {
 
     // 3. Create one-click build script (batch file for Windows)
     const buildBat = `@echo off
-chcp 65001 >nul
-title VideoSniffer - 一键打包EXE
+title VideoSniffer - Build EXE
 echo.
 echo  ============================================
-echo    VideoSniffer EXE 一键打包工具
-echo    适用于 Windows 10/11 (64位)
+echo    VideoSniffer EXE Build Tool
+echo    For Windows 10/11 (64-bit)
 echo  ============================================
 echo.
 
-:: 检查 Node.js
+:: Check Node.js
 where node >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [错误] 未检测到 Node.js！请先安装 Node.js 18+
-    echo 下载地址: https://nodejs.org/
+    echo [ERROR] Node.js not found! Please install Node.js 18+
+    echo Download: https://nodejs.org/
     pause
     exit /b 1
 )
 
-:: 检查 pnpm
+:: Check pnpm
 where pnpm >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [提示] 正在安装 pnpm 包管理器...
+    echo [INFO] Installing pnpm package manager...
     npm install -g pnpm
 )
 
-echo [1/4] 安装项目依赖...
+echo [1/4] Installing dependencies...
 call pnpm install
 if %ERRORLEVEL% NEQ 0 (
-    echo [错误] 依赖安装失败
+    echo [ERROR] Dependency installation failed
     pause
     exit /b 1
 )
 
 echo.
-echo [2/4] 构建 Next.js 应用...
+echo [2/4] Building Next.js application...
 call pnpm run build:next
 if %ERRORLEVEL% NEQ 0 (
-    echo [错误] Next.js 构建失败
+    echo [ERROR] Next.js build failed
     pause
     exit /b 1
 )
 
 echo.
-echo [3/4] 打包 Electron 桌面应用...
+echo [3/4] Packaging Electron desktop app...
 call pnpm run build:electron
 if %ERRORLEVEL% NEQ 0 (
-    echo [错误] Electron 打包失败
+    echo [ERROR] Electron packaging failed
     pause
     exit /b 1
 )
 
 echo.
-echo [4/4] 打包完成！
+echo [4/4] Build complete!
 echo.
 echo  ============================================
-echo    EXE 安装程序已生成在 "dist" 文件夹中
-echo    双击 EXE 即可安装使用
+echo    EXE installer is in the "dist" folder
+echo    Double-click the EXE to install
 echo  ============================================
 echo.
 
@@ -169,28 +168,28 @@ const path = require('path');
 
 console.log('');
 console.log('  ============================================');
-console.log('    VideoSniffer EXE 一键打包工具');
-console.log('    适用于 Windows 10/11 (64位)');
+console.log('    VideoSniffer EXE Build Tool');
+console.log('    For Windows 10/11 (64-bit)');
 console.log('  ============================================');
 console.log('');
 
 function run(cmd, label) {
-  console.log(\`[\${label}] 执行: \${cmd}\`);
+  console.log(\`[\${label}] Running: \${cmd}\`);
   try {
     execSync(cmd, { stdio: 'inherit', cwd: path.join(__dirname, '..') });
-    console.log(\`[\${label}] 完成!\`);
+    console.log(\`[\${label}] Done!\`);
   } catch (err) {
-    console.error(\`[\${label}] 失败:\`, err.message);
+    console.error(\`[\${label}] Failed:\`, err.message);
     process.exit(1);
   }
 }
 
-run('pnpm install', '步骤 1/3 - 安装依赖');
-run('pnpm run build:next', '步骤 2/3 - 构建 Next.js');
-run('pnpm run build:electron', '步骤 3/3 - 打包 Electron');
+run('pnpm install', 'Step 1/3 - Install dependencies');
+run('pnpm run build:next', 'Step 2/3 - Build Next.js');
+run('pnpm run build:electron', 'Step 3/3 - Package Electron');
 
 console.log('');
-console.log('  打包完成！EXE 安装程序在 "dist" 文件夹中');
+console.log('  Build complete! EXE installer is in the "dist" folder');
 console.log('');
 `;
     fs.writeFileSync(path.join(pkgDir, 'scripts', 'build.js'), buildJs);
